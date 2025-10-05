@@ -72,6 +72,15 @@ export default function AdminLogin() {
       if (response.ok) {
         const data = await response.json();
         dispatch(setCredentials({ token: data.token, user: data.user }));
+        // persist minimal identity for navbar/pages
+        if (data?.user) {
+          try {
+            localStorage.setItem('userName', data.user.name || 'Admin');
+            localStorage.setItem('userRole', data.user.role || 'admin');
+            const dept = data.user.department?.name || data.user.department || formData.department || '';
+            if (dept) localStorage.setItem('userDepartment', dept);
+          } catch {}
+        }
         toast.success("Login successful!");
         router.push("/dashboard/admin");
       } else {

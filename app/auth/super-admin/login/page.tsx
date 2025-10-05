@@ -48,6 +48,13 @@ export default function SuperAdminLogin() {
       if (response.ok) {
         const data = await response.json();
         dispatch(setCredentials({ token: data.token, user: data.user }));
+        // persist minimal identity for navbar/pages
+        if (data?.user) {
+          try {
+            localStorage.setItem('userName', data.user.name || 'Super Admin');
+            localStorage.setItem('userRole', data.user.role || 'super-admin');
+          } catch {}
+        }
         toast.success("Login successful!");
         router.push("/dashboard/super-admin");
       } else {

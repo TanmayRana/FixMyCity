@@ -97,6 +97,9 @@ export default function DepartmentAdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
+  // Helper to detect if a string looks like a Mongo ObjectId
+  const isLikelyObjectId = (val?: string | null) => !!val && /^[a-fA-F0-9]{24}$/.test(val);
+
   const fetchDashboardData = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -131,7 +134,13 @@ export default function DepartmentAdminDashboard() {
 
       // Derive department name from complaints (category) if available
       const deptName = list[0]?.category || "";
-      if (deptName) setUserDepartment((prev) => prev || deptName);
+      if (deptName) {
+        setUserDepartment((prev) => {
+          // If current value looks like an ObjectId or is empty, replace it with readable name
+          if (!prev || isLikelyObjectId(prev)) return deptName;
+          return prev;
+        });
+      }
 
       // Calculate dynamic statistics
       const total = list.length;
@@ -203,6 +212,19 @@ export default function DepartmentAdminDashboard() {
   const didFetchRef = useRef(false);
 
   useEffect(() => {
+    // Initialize identity from localStorage
+    try {
+      const storedName = localStorage.getItem('userName');
+      const storedDept = localStorage.getItem('userDepartment');
+      if (storedName) setUserName(storedName);
+      if (storedDept) {
+        setUserDepartment((prev) => {
+          // Allow later overwrite if this is an ObjectId; keep if it's already a readable name
+          if (!prev) return storedDept;
+          return prev;
+        });
+      }
+    } catch {}
     // Ensure one-time fetch, even under React StrictMode double effect calling
     if (didFetchRef.current) return;
     didFetchRef.current = true;

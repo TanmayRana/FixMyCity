@@ -33,6 +33,11 @@ export function Navbar({ userName, userRole }: NavbarProps) {
     router.push('/');
   };
 
+
+  console.log("userName", userName);
+  console.log("userRole", userRole);
+  
+
   const getDashboardLink = () => {
     switch (userRole) {
       case 'citizen':
@@ -74,8 +79,12 @@ export function Navbar({ userName, userRole }: NavbarProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  {/* username section */}
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src="" alt={userName} />
+                    <AvatarImage
+                      src={`https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(userName || 'User')}`}
+                      alt={userName || 'User'}
+                    />
                     <AvatarFallback>{getInitials(userName || 'User')}</AvatarFallback>
                   </Avatar>
                 </Button>

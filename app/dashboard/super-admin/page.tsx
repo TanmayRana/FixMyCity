@@ -275,6 +275,7 @@ export default function SuperAdminDashboard() {
 
   useEffect(() => {
     const storedUserName = localStorage.getItem("userName");
+    console.log("storedUserName", storedUserName);
     if (storedUserName) {
       setUserName(storedUserName);
     }

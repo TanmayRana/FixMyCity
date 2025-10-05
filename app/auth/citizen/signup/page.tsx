@@ -59,6 +59,13 @@ export default function CitizenSignup() {
       if (response.ok) {
         const data = await response.json();
         dispatch(setCredentials({ token: data.token, user: data.user }));
+        // persist minimal identity for navbar/pages
+        if (data?.user) {
+          try {
+            localStorage.setItem('userName', data.user.name || `${formData.firstName} ${formData.lastName}`.trim() || 'Citizen');
+            localStorage.setItem('userRole', data.user.role || 'citizen');
+          } catch {}
+        }
         toast.success('Account created successfully!');
         router.push('/dashboard/citizen');
       } else {

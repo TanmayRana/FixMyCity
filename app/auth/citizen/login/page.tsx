@@ -44,6 +44,13 @@ export default function CitizenLogin() {
       if (response.ok) {
         const data = await response.json();
         dispatch(setCredentials({ token: data.token, user: data.user }));
+        // persist minimal identity for navbar/pages
+        if (data?.user) {
+          try {
+            localStorage.setItem('userName', data.user.name || 'Citizen');
+            localStorage.setItem('userRole', data.user.role || 'citizen');
+          } catch {}
+        }
         toast.success('Login successful!');
         router.push('/dashboard/citizen');
       } else {
@@ -144,7 +151,7 @@ export default function CitizenLogin() {
                 Forgot your password?
               </Link>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link href="/auth/citizen/signup" className="text-blue-600 dark:text-blue-400 hover:underline">
                   Sign up here
                 </Link>

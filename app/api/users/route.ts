@@ -10,7 +10,6 @@ const verifyToken = (request: NextRequest) => {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
-  
   const token = authHeader.substring(7);
   try {
     return jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
@@ -18,6 +17,52 @@ const verifyToken = (request: NextRequest) => {
     return null;
   }
 };
+
+// PATCH /api/users - Update user (super-admin only)
+export async function PATCH(request: NextRequest) {
+  try {
+    await connectDB();
+
+    const authUser = verifyToken(request);
+    if (!authUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (authUser.role !== 'super-admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const { id, name, email, role, department, phone, address, isActive } = await request.json();
+
+    if (!id) {
+      return NextResponse.json({ error: 'User id is required' }, { status: 400 });
+    }
+
+    const update: any = {};
+    if (typeof name === 'string') update.name = name;
+    if (typeof email === 'string') update.email = email;
+    if (typeof role === 'string') update.role = role;
+    if (typeof department === 'string' || department === null) update.department = department || undefined;
+    if (typeof phone === 'string' || phone === null) update.phone = phone || undefined;
+    if (typeof address === 'string' || address === null) update.address = address || undefined;
+    if (typeof isActive === 'boolean') update.isActive = isActive;
+
+    const updated = await User.findByIdAndUpdate(id, { $set: update }, { new: true })
+      .select('-password');
+
+    if (!updated) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Update user error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
 
 // GET /api/users - Get all users
 export async function GET(request: NextRequest) {
